@@ -72,10 +72,112 @@ const eliminarRutina = async (req, res) => {
   }
 };
 
+// Actualizar el comentario del profesor en una rutina
+const actualizarComentarioProfesor = async (req, res) => {
+  try {
+    const { id } = req.params; // ID de la rutina desde los parámetros
+    const { comentario_profesor } = req.body; // Comentario enviado en el body de la solicitud
+
+    // Buscar la rutina por ID
+    const rutina = await Rutina.findById(id);
+    if (!rutina) {
+      return res.status(404).json({ message: 'Rutina no encontrada' });
+    }
+
+    // Actualizar el campo comentario_profesor
+    rutina.comentario_profesor = comentario_profesor || rutina.comentario_profesor;
+
+    // Guardar los cambios
+    await rutina.save();
+
+    res.status(200).json({ message: 'Comentario del profesor actualizado exitosamente', rutina });
+  } catch (error) {
+    console.error('Error al actualizar el comentario del profesor:', error);
+    res.status(500).json({ message: 'Error al actualizar el comentario del profesor', error });
+  }
+};
+
+const actualizarPesoUtilizado = async (req, res) => {
+  try {
+    console.log("IDs recibidos:", req.params);
+    console.log("Datos recibidos:", req.body);
+
+    const { rutinaId, ejercicioId } = req.params;
+    const { peso_utilizado } = req.body;
+
+    const rutina = await Rutina.findById(rutinaId);
+    if (!rutina) {
+      console.log("Rutina no encontrada");
+      return res.status(404).json({ message: 'Rutina no encontrada' });
+    }
+
+    let ejercicioActualizado = null;
+    rutina.semanas.forEach((semana) => {
+      semana.dias.forEach((dia) => {
+        dia.ejercicios.forEach((ejercicio) => {
+          if (ejercicio.ejercicio_id.toString() === ejercicioId) {
+            ejercicio.peso_utilizado = peso_utilizado;
+            ejercicioActualizado = ejercicio;
+          }
+        });
+      });
+    });
+
+    if (!ejercicioActualizado) {
+      console.log("Ejercicio no encontrado");
+      return res.status(404).json({ message: 'Ejercicio no encontrado en la rutina' });
+    }
+
+    await rutina.save();
+    res.status(200).json({ message: 'Peso utilizado actualizado', ejercicio: ejercicioActualizado });
+  } catch (error) {
+    console.error('Error al actualizar el peso utilizado:', error);
+    res.status(500).json({ message: 'Error al actualizar el peso utilizado', error });
+  }
+};
+
+const actualizarComentarioDia = async (req, res) => {
+  try {
+    const { id } = req.params; // ID de la rutina
+    const { dia, comentario } = req.body; // Día y comentario enviados en el body
+
+    // Buscar la rutina por ID
+    const rutina = await Rutina.findById(id);
+    if (!rutina) {
+      return res.status(404).json({ message: 'Rutina no encontrada' });
+    }
+
+    // Buscar el día correspondiente y actualizar el comentario
+    let diaActualizado = null;
+    rutina.semanas.forEach((semana) => {
+      semana.dias.forEach((d) => {
+        if (d.dia === dia) {
+          d.comentario = comentario; // Actualizar el comentario del día
+          diaActualizado = d;
+        }
+      });
+    });
+
+    if (!diaActualizado) {
+      return res.status(404).json({ message: 'Día no encontrado en la rutina' });
+    }
+
+    // Guardar los cambios
+    await rutina.save();
+    res.status(200).json({ message: `Comentario para el día ${dia} guardado`, dia: diaActualizado });
+  } catch (error) {
+    console.error('Error al guardar el comentario del día:', error);
+    res.status(500).json({ message: 'Error al guardar el comentario del día', error });
+  }
+};
+
 module.exports = {
   obtenerRutinas,
   crearRutina,
   obtenerRutinaPorId,
   actualizarRutina,
   eliminarRutina,
+  actualizarComentarioProfesor,
+  actualizarPesoUtilizado,
+  actualizarComentarioDia, // Nuevo controlador
 };
