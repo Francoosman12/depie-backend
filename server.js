@@ -6,6 +6,9 @@ const usuarioRoutes = require('./routes/usuarioRoutes');
 const ejercicioRoutes = require('./routes/ejercicioRoutes'); // Importa las rutas de ejercicios
 const rutinaRoutes = require('./routes/rutinaRoutes');
 const authRoutes = require("./routes/authRoutes");
+const pagoRoutes = require("./routes/pagoRoutes");
+
+
 
 
 
@@ -29,6 +32,8 @@ app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/ejercicios', ejercicioRoutes); // Agrega las rutas de ejercicios
 app.use('/api/rutinas', rutinaRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api", pagoRoutes);
+
 
 
 
