@@ -5,14 +5,14 @@ const rutinaSchema = new mongoose.Schema({
   descripcion: { type: String, required: true },
   alumno_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
   entrenador_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
-  fecha_asignacion: { type: Date, required: true }, // El profesor define la fecha de inicio
-  fecha_fin: { type: Date }, // Calculada automáticamente con base en la fecha_asignacion
+  fecha_asignacion: { type: Date, required: true },
+  fecha_fin: { type: Date },
   semanas: [
     {
       numeroSemana: { type: Number, required: true },
       dias: [
         {
-          dia: { type: String, required: true }, // Ejemplo: 'Lunes', 'Martes'
+          dia: { type: String, required: true },
           ejercicios: [
             {
               ejercicio_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Ejercicio', required: true },
@@ -20,28 +20,32 @@ const rutinaSchema = new mongoose.Schema({
               series: { type: Number, required: true },
               repeticiones: { type: String, required: true },
               peso_sugerido: { type: String },
-              peso_utilizado: { type: Number }, // Alumno registra el peso utilizado
-              bloque: { 
-                type: String, 
-                enum: ['A', 'B', 'C', 'D', 'E', 'F', 'Calentamiento', 'Parte Final'], 
-                default: 'A', // Bloque del ejercicio
+              peso_serie_1: { type: Number, default: 0 }, // Peso utilizado en la primera serie
+              peso_serie_2: { type: Number, default: 0 }, // Peso utilizado en la segunda serie
+              peso_serie_3: { type: Number, default: 0 }, // Peso utilizado en la tercera serie
+              requiere_peso: { type: Boolean, default: true },
+              bloque: {
+                type: String,
+                enum: ['A', 'B', 'C', 'D', 'E', 'F', 'Calentamiento', 'Parte Final'],
+                default: 'A',
               },
+              terminado: { type: Boolean, default: false },
             },
           ],
-          comentario: { type: String }, // Comentarios del alumno sobre el día
+          comentario: { type: String },
         },
       ],
     },
   ],
-  estado: { type: String, enum: ['Activa', 'Inactiva'], default: 'Activa' }, // Ejemplo: Activa o finalizada
-  comentario_profesor: { type: String }, // Comentario general del profesor sobre la rutina
+  estado: { type: String, enum: ['Activa', 'Inactiva'], default: 'Activa' },
+  comentario_profesor: { type: String },
 });
 
-// Establecer automáticamente la `fecha_fin` basada en la `fecha_asignacion`
+// Middleware para calcular automáticamente la fecha_fin
 rutinaSchema.pre('save', function (next) {
   if (this.fecha_asignacion) {
     this.fecha_fin = new Date(this.fecha_asignacion);
-    this.fecha_fin.setDate(this.fecha_asignacion.getDate() + 28); // Sumar 28 días al inicio
+    this.fecha_fin.setDate(this.fecha_asignacion.getDate() + 28);
   }
   next();
 });

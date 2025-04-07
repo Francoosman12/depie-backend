@@ -99,16 +99,12 @@ const actualizarComentarioProfesor = async (req, res) => {
 
 const actualizarPesoUtilizado = async (req, res) => {
   try {
-    console.log("IDs recibidos:", req.params);
-    console.log("Datos recibidos:", req.body);
-
     const { rutinaId, ejercicioId } = req.params;
-    const { peso_utilizado } = req.body;
+    const { peso_serie_1, peso_serie_2, peso_serie_3, terminado } = req.body;
 
     const rutina = await Rutina.findById(rutinaId);
     if (!rutina) {
-      console.log("Rutina no encontrada");
-      return res.status(404).json({ message: 'Rutina no encontrada' });
+      return res.status(404).json({ message: 'Rutina no encontrada.' });
     }
 
     let ejercicioActualizado = null;
@@ -116,7 +112,11 @@ const actualizarPesoUtilizado = async (req, res) => {
       semana.dias.forEach((dia) => {
         dia.ejercicios.forEach((ejercicio) => {
           if (ejercicio.ejercicio_id.toString() === ejercicioId) {
-            ejercicio.peso_utilizado = peso_utilizado;
+            // Asignar los valores a los campos específicos
+            ejercicio.peso_serie_1 = peso_serie_1 || 0;
+            ejercicio.peso_serie_2 = peso_serie_2 || 0;
+            ejercicio.peso_serie_3 = peso_serie_3 || 0;
+            ejercicio.terminado = terminado;
             ejercicioActualizado = ejercicio;
           }
         });
@@ -124,15 +124,14 @@ const actualizarPesoUtilizado = async (req, res) => {
     });
 
     if (!ejercicioActualizado) {
-      console.log("Ejercicio no encontrado");
-      return res.status(404).json({ message: 'Ejercicio no encontrado en la rutina' });
+      return res.status(404).json({ message: 'Ejercicio no encontrado en la rutina.' });
     }
 
     await rutina.save();
-    res.status(200).json({ message: 'Peso utilizado actualizado', ejercicio: ejercicioActualizado });
+    res.status(200).json({ message: 'Pesos utilizados actualizados', ejercicio: ejercicioActualizado });
   } catch (error) {
-    console.error('Error al actualizar el peso utilizado:', error);
-    res.status(500).json({ message: 'Error al actualizar el peso utilizado', error });
+    console.error('Error al actualizar los pesos utilizados:', error);
+    res.status(500).json({ message: 'Error al actualizar los pesos utilizados.', error });
   }
 };
 
