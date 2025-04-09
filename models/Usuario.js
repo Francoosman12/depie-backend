@@ -47,6 +47,8 @@ const usuarioSchema = new mongoose.Schema({
   entrenadorAsignado: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }, // ID del entrenador
   metodoRegistro: { type: String, enum: ['email', 'google'] }, // Método de registro
   activo: { type: Boolean, default: true }, // Estado del usuario: activo/inactivo
+  direccion: { type: String, default: '' }, // Nueva propiedad para la dirección
+  fotoPerfil: { type: String, default: '' }, // Nueva propiedad para URL de la foto de perfil
 });
 
 const Usuario = mongoose.model('Usuario', usuarioSchema);
