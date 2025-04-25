@@ -7,7 +7,7 @@ const {
   actualizarRutina,
   eliminarRutina,
   actualizarComentarioProfesor, // Controlador para el comentario del profesor
-  actualizarPesoUtilizado, // Controlador para actualizar el peso utilizado en un ejercicio
+  actualizarPesoUtilizado, // Ajustado para actualizar el peso utilizado por semana y día específicos
   actualizarComentarioDia, // Controlador para actualizar comentarios diarios
 } = require('../controllers/rutinaController');
 
@@ -27,11 +27,11 @@ router.put('/:id', actualizarRutina);
 // Actualizar el comentario del profesor
 router.put('/:id/comentario_profesor', actualizarComentarioProfesor);
 
-// Actualizar el peso utilizado de un ejercicio en una rutina
-router.put('/:rutinaId/ejercicio/:ejercicioId', actualizarPesoUtilizado);
+// Actualizar el peso utilizado de un ejercicio en una semana y día específico de la rutina
+router.put('/:rutinaId/semana/:numeroSemana/dia/:dia/ejercicio/:ejercicioId', actualizarPesoUtilizado);
 
 // Actualizar el comentario diario del alumno en un día específico
-router.put('/:id/comentario_dia', actualizarComentarioDia); // Nueva ruta para comentarios diarios
+router.put('/:id/comentario_dia', actualizarComentarioDia);
 
 // Eliminar una rutina por su ID
 router.delete('/:id', eliminarRutina);

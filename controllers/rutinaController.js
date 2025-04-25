@@ -3,20 +3,18 @@ const Rutina = require('../models/Rutina');
 // Obtener todas las rutinas o filtrar por alumno_id
 const obtenerRutinas = async (req, res) => {
   try {
-    const { alumno_id } = req.query; // Obtener el alumno_id desde los parámetros de consulta
-    const query = alumno_id ? { alumno_id } : {}; // Crear un filtro si se proporciona alumno_id
-    const rutinas = await Rutina.find(query).populate({
-      path: 'alumno_id',
-      select: 'nombre email', // Selecciona solo los campos necesarios
-    }).populate({
-      path: 'entrenador_id',
-      select: 'nombre email',
-    }).populate({
-      path: 'semanas.dias.ejercicios.ejercicio_id',
-    });
-    
+    const { alumno_id } = req.query;
+    const query = alumno_id ? { alumno_id } : {};
+    const rutinas = await Rutina.find(query)
+      .populate({
+        path: "semanas.dias.ejercicios.ejercicio_id",
+        select: "nombre descripcion video_url", // ✅ Asegurar que `video_url` se incluye
+      });
+
+    console.log("Rutinas enviadas desde la API:", JSON.stringify(rutinas, null, 2)); // ✅ Revisar si `video_url` está presente
     res.json(rutinas);
   } catch (error) {
+    console.error("Error al obtener rutinas:", error);
     res.status(500).json({ message: "Error al obtener rutinas", error });
   }
 };
@@ -99,39 +97,49 @@ const actualizarComentarioProfesor = async (req, res) => {
 
 const actualizarPesoUtilizado = async (req, res) => {
   try {
-    const { rutinaId, ejercicioId } = req.params;
+    const { rutinaId, numeroSemana, dia, ejercicioId } = req.params;
     const { peso_serie_1, peso_serie_2, peso_serie_3, terminado } = req.body;
 
     const rutina = await Rutina.findById(rutinaId);
     if (!rutina) {
-      return res.status(404).json({ message: 'Rutina no encontrada.' });
+      return res.status(404).json({ message: "Rutina no encontrada." });
     }
 
-    let ejercicioActualizado = null;
-    rutina.semanas.forEach((semana) => {
-      semana.dias.forEach((dia) => {
-        dia.ejercicios.forEach((ejercicio) => {
-          if (ejercicio.ejercicio_id.toString() === ejercicioId) {
-            // Asignar los valores a los campos específicos
-            ejercicio.peso_serie_1 = peso_serie_1 || 0;
-            ejercicio.peso_serie_2 = peso_serie_2 || 0;
-            ejercicio.peso_serie_3 = peso_serie_3 || 0;
-            ejercicio.terminado = terminado;
-            ejercicioActualizado = ejercicio;
-          }
-        });
-      });
-    });
-
-    if (!ejercicioActualizado) {
-      return res.status(404).json({ message: 'Ejercicio no encontrado en la rutina.' });
+    // Buscar la semana específica
+    const semana = rutina.semanas.find((s) => s.numeroSemana == numeroSemana);
+    if (!semana) {
+      return res.status(404).json({ message: "Semana no encontrada." });
     }
+
+    // Buscar el día dentro de esa semana
+    const diaEntrenamiento = semana.dias.find((d) => d.dia === dia);
+    if (!diaEntrenamiento) {
+      return res.status(404).json({ message: "Día de entrenamiento no encontrado." });
+    }
+
+    // Buscar el ejercicio por su _id único dentro del día específico
+    const ejercicio = diaEntrenamiento.ejercicios.find(
+      (e) => e._id.toString() === ejercicioId // Aquí validamos que sea el ejercicio correcto dentro de esa semana/día
+    );
+
+    if (!ejercicio) {
+      return res.status(404).json({ message: "Ejercicio no encontrado en este día." });
+    }
+
+    // Actualizar los pesos utilizados solo en esta instancia del ejercicio
+    ejercicio.peso_serie_1 = peso_serie_1 || 0;
+    ejercicio.peso_serie_2 = peso_serie_2 || 0;
+    ejercicio.peso_serie_3 = peso_serie_3 || 0;
+    ejercicio.terminado = terminado;
 
     await rutina.save();
-    res.status(200).json({ message: 'Pesos utilizados actualizados', ejercicio: ejercicioActualizado });
+    res.status(200).json({
+      message: "Pesos utilizados actualizados en la semana y día correctos.",
+      ejercicio,
+    });
   } catch (error) {
-    console.error('Error al actualizar los pesos utilizados:', error);
-    res.status(500).json({ message: 'Error al actualizar los pesos utilizados.', error });
+    console.error("Error al actualizar los pesos utilizados:", error);
+    res.status(500).json({ message: "Error al actualizar los pesos utilizados.", error });
   }
 };
 
